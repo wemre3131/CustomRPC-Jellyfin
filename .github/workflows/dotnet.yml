@@ -1,0 +1,79 @@
+name: Build & Release Kavasaki Presence
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: 📦 Restore dependencies
+        run: dotnet restore
+
+      - name: 🏗️ Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 🚀 Publish
+        run: dotnet publish --configuration Release --no-build --output ./publish
+
+      - name: 📁 Create plugin ZIP
+        run: |
+          mkdir -p ./release
+          zip -j ./release/Jellyfin.Plugin.KavasakiPresence_${{ github.ref_name }}.zip ./publish/Jellyfin.Plugin.KavasakiPresence.dll
+          echo "CHECKSUM=$(md5sum ./release/Jellyfin.Plugin.KavasakiPresence_${{ github.ref_name }}.zip | awk '{print $1}')" >> $GITHUB_ENV
+
+      - name: 🏷️ Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Kavasaki Presence ${{ github.ref_name }}
+          body: |
+            ## 🎮 Kavasaki Presence ${{ github.ref_name }}
+            Custom Rich Presence Jellyfin made by Kavasaki
+
+            ### 📦 Installation
+            Add this repository URL to Jellyfin:
+            ```
+            https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json
+            ```
+
+            ### MD5 Checksum
+            `${{ env.CHECKSUM }}`
+          files: ./release/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Update manifest.json checksum
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          ASSET_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Jellyfin.Plugin.KavasakiPresence_${{ github.ref_name }}.zip"
+
+          jq --arg version "$VERSION" \
+             --arg checksum "${{ env.CHECKSUM }}" \
+             --arg url "$ASSET_URL" \
+             '.[0].version = $version | .[0].checksum = $checksum | .[0].sourceUrl = $url' \
+             manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "chore: update manifest for ${{ github.ref_name }}" || echo "No changes"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
