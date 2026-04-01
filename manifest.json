@@ -1,17 +1,21 @@
 [
   {
-    "category": "Notifications",
-    "changelog": "Initial release of Kavasaki Presence plugin.",
-    "description": "Custom Rich Presence Jellyfin made by Kavasaki. Shows what you're watching on Discord with IMDB ratings and links - no API key required!",
     "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "imageUrl": "",
     "name": "Kavasaki Presence",
+    "description": "Custom Rich Presence Jellyfin made by Kavasaki. Shows what you're watching on Discord with IMDB ratings and links - no API key required!",
     "overview": "Discord Rich Presence for Jellyfin",
     "owner": "Kavasaki",
-    "targetAbi": "10.9.0.0",
-    "timestamp": "2024-01-01T00:00:00Z",
-    "version": "1.0.1",
-    "checksum": "",
-    "sourceUrl": "https://github.com/wemre3131/CustomRPC-Jellyfin/releases/download/v1.0.1/Jellyfin.Plugin.KavasakiPresence_v1.0.1.zip"
+    "category": "Notifications",
+    "imageUrl": "https://raw.githubusercontent.com/wemre3131/CustomRPC-Jellyfin/main/Configuration/configPage.html",
+    "versions": [
+      {
+        "version": "1.0.1",
+        "changelog": "Initial release of Kavasaki Presence plugin.",
+        "targetAbi": "10.10.7",
+        "sourceUrl": "https://codeload.github.com/wemre3131/CustomRPC-Jellyfin/zip/refs/tags/v1.0.1",
+        "checksum": "6e662f891803e46a0f914333345c5f2d",
+        "timestamp": "2026-04-01T10:52:02Z"
+      }
+    ]
   }
 ]
