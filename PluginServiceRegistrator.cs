@@ -6,7 +6,7 @@ namespace Jellyfin.Plugin.KavasakiPresence;
 
 public class PluginServiceRegistrator : IPluginServiceRegistrator
 {
-    public void RegisterServices(IServiceCollection serviceCollection)
+    public void RegisterServices(IServiceCollection serviceCollection, IServiceProvider applicationServiceProvider)
     {
         serviceCollection.AddSingleton<DiscordService>();
         serviceCollection.AddSingleton<ImdbService>();
