@@ -35,7 +35,7 @@ Shows what you're watching on Discord — with IMDB ratings and links, all witho
 ### Option B: Plugin Repository
 Add this URL to Jellyfin plugin repositories:
 ```
-https://raw.githubusercontent.com/your-repo/main/manifest.json
+https://raw.githubusercontent.com/wemre3131/CustomRPC-Jellyfin/refs/heads/main/manifest.json
 ```
 
 ---
