@@ -12,8 +12,8 @@
         "version": "1.0.1",
         "changelog": "Initial release of Kavasaki Presence plugin.",
         "targetAbi": "10.10.7.0",
-        "sourceUrl": "https://github.com/wemre3131/CustomRPC-Jellyfin/releases/download/v1.0.1/KavasakiPresence_v1.0.1_Jellyfin10.10.7_with_Config.zip",
-        "checksum": "21c342c4252372e60ec523a9b631f19f",
+        "sourceUrl": "https://github.com/wemre3131/CustomRPC-Jellyfin/releases/download/v1.0/Jellyfin.Plugin.KavasakiPresence_Fixed.zip",
+        "checksum": "c8336c7884324951e34ba98e846905d0",
         "timestamp": "2026-04-01T10:52:02Z"
       }
     ]
