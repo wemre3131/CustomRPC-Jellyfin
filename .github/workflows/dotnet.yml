@@ -8,6 +8,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,13 +25,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: 📦 Restore dependencies
-        run: dotnet restore
+        run: dotnet restore Jellyfin.Plugin.KavasakiPresence.csproj
 
       - name: 🏗️ Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build Jellyfin.Plugin.KavasakiPresence.csproj --configuration Release --no-restore
 
       - name: 🚀 Publish
-        run: dotnet publish --configuration Release --no-build --output ./publish
+        run: dotnet publish Jellyfin.Plugin.KavasakiPresence.csproj --configuration Release --no-build --output ./publish
 
       - name: 📁 Create plugin ZIP
         run: |
