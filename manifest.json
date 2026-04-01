@@ -6,14 +6,14 @@
     "overview": "Discord Rich Presence for Jellyfin",
     "owner": "Kavasaki",
     "category": "Notifications",
-    "imageUrl": "https://raw.githubusercontent.com/wemre3131/CustomRPC-Jellyfin/main/Configuration/configPage.html",
+    "imageUrl": "https://files.catbox.moe/sndla0.jpg",
     "versions": [
       {
         "version": "1.0.1",
         "changelog": "Initial release of Kavasaki Presence plugin.",
-        "targetAbi": "10.10.7",
-        "sourceUrl": "https://codeload.github.com/wemre3131/CustomRPC-Jellyfin/zip/refs/tags/v1.0.1",
-        "checksum": "6e662f891803e46a0f914333345c5f2d",
+        "targetAbi": "10.10.70",
+        "sourceUrl": "https://github.com/wemre3131/CustomRPC-Jellyfin/releases/download/v1.0.1/KavasakiPresence_v1.0.1_Jellyfin10.10.7.zip",
+        "checksum": "a2b2e77bb6aff1b8a8d99d3630752a18",
         "timestamp": "2026-04-01T10:52:02Z"
       }
     ]
