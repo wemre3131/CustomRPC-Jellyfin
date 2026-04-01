@@ -85,8 +85,8 @@ No third-party APIs, no keys needed. 🎉
 ## 🏗️ Building from Source
 
 ```bash
-git clone https://github.com/youruser/Jellyfin.Plugin.KavasakiPresence
-cd Jellyfin.Plugin.KavasakiPresence
+git clone https://github.com/wemre3131/CustomRPC-Jellyfin
+cd CustomRPC-Jellyfin
 dotnet build -c Release
 ```
 
