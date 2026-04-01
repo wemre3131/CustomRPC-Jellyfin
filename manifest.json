@@ -1,0 +1,15 @@
+[
+  {
+    "category": "Notifications",
+    "changelog": "Initial release of Kavasaki Presence plugin.",
+    "description": "Custom Rich Presence Jellyfin made by Kavasaki. Shows what you're watching on Discord with IMDB ratings and links - no API key required!",
+    "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "imageUrl": "",
+    "name": "Kavasaki Presence",
+    "overview": "Discord Rich Presence for Jellyfin",
+    "owner": "Kavasaki",
+    "targetAbi": "10.9.0.0",
+    "timestamp": "2024-01-01T00:00:00Z",
+    "version": "1.0.0"
+  }
+]
