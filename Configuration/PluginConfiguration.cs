@@ -17,4 +17,9 @@ public class PluginConfiguration : BasePluginConfiguration
     public string DiscordAppClientId { get; set; } = "1234567890123456789";
     public bool ShowJellyfinButton { get; set; } = false;
     public string JellyfinPublicUrl { get; set; } = string.Empty;
+
+    public PluginConfiguration()
+    {
+        // Default constructor
+    }
 }
