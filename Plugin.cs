@@ -43,8 +43,10 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         {
             new PluginPageInfo
             {
-                Name = Name,
-                EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
+                Name = "KavasakiPresence",
+                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html",
+                DisplayName = "Kavasaki Presence",
+                EnableInMainMenu = false
             }
         };
     }
