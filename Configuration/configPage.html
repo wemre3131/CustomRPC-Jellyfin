@@ -1,650 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
     <title>Kavasaki Presence</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-        :root {
-            --discord-blurple: #5865F2;
-            --discord-dark: #2B2D31;
-            --discord-darker: #1E1F22;
-            --discord-mid: #313338;
-            --discord-light: #404249;
-            --discord-text: #DBDEE1;
-            --discord-muted: #80848E;
-            --discord-green: #23A55A;
-            --discord-yellow: #F0B232;
-            --imdb-yellow: #F5C518;
-            --accent: #5865F2;
-            --danger: #ED4245;
-            --card-bg: rgba(43, 45, 49, 0.8);
-            --border: rgba(255,255,255,0.06);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background: var(--discord-darker);
-            color: var(--discord-text);
-            font-family: 'Space Grotesk', sans-serif;
-            min-height: 100vh;
-            padding: 0;
-        }
-
-        /* ─── Header ─── */
-        .kp-header {
-            background: linear-gradient(135deg, #23252A 0%, #1a1b1e 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 28px 40px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        .kp-header::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 20% 50%, rgba(88,101,242,0.15) 0%, transparent 60%);
-            pointer-events: none;
-        }
-        .kp-logo {
-            width: 56px; height: 56px;
-            background: linear-gradient(135deg, var(--discord-blurple), #7289DA);
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 4px 20px rgba(88,101,242,0.4);
-            flex-shrink: 0;
-        }
-        .kp-header-text h1 {
-            font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
-            background: linear-gradient(90deg, #fff 0%, #a5b4fc 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .kp-header-text p {
-            font-size: 13px; color: var(--discord-muted); margin-top: 3px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .kp-badge {
-            margin-left: auto;
-            background: rgba(88,101,242,0.2);
-            border: 1px solid rgba(88,101,242,0.4);
-            color: #a5b4fc;
-            font-size: 11px; font-weight: 600;
-            padding: 4px 10px; border-radius: 20px;
-            letter-spacing: 0.5px;
-        }
-
-        /* ─── Main Layout ─── */
-        .kp-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 32px 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .kp-full { grid-column: 1 / -1; }
-
-        /* ─── Cards ─── */
-        .kp-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            backdrop-filter: blur(10px);
-        }
-        .kp-card-title {
-            font-size: 12px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1px;
-            color: var(--discord-muted);
-            margin-bottom: 18px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .kp-card-title::after {
-            content: ''; flex: 1; height: 1px;
-            background: var(--border);
-        }
-
-        /* ─── Status Banner ─── */
-        .kp-status-banner {
-            display: flex; align-items: center; gap: 14px;
-            padding: 16px 20px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: all 0.3s;
-        }
-        .kp-status-banner.connected {
-            background: rgba(35,165,90,0.12);
-            border: 1px solid rgba(35,165,90,0.3);
-        }
-        .kp-status-banner.disconnected {
-            background: rgba(237,66,69,0.12);
-            border: 1px solid rgba(237,66,69,0.3);
-        }
-        .kp-status-banner.waiting {
-            background: rgba(240,178,50,0.12);
-            border: 1px solid rgba(240,178,50,0.3);
-        }
-        .kp-status-dot {
-            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-        }
-        .connected .kp-status-dot { background: var(--discord-green); box-shadow: 0 0 8px var(--discord-green); animation: pulse-green 2s infinite; }
-        .disconnected .kp-status-dot { background: var(--danger); }
-        .waiting .kp-status-dot { background: var(--discord-yellow); animation: pulse-yellow 1.5s infinite; }
-
-        @keyframes pulse-green {
-            0%,100% { box-shadow: 0 0 0 0 rgba(35,165,90,0.4); }
-            50% { box-shadow: 0 0 0 6px rgba(35,165,90,0); }
-        }
-        @keyframes pulse-yellow {
-            0%,100% { box-shadow: 0 0 0 0 rgba(240,178,50,0.4); }
-            50% { box-shadow: 0 0 0 6px rgba(240,178,50,0); }
-        }
-
-        .kp-status-text strong { display: block; font-size: 14px; font-weight: 600; }
-        .kp-status-text span { font-size: 12px; color: var(--discord-muted); }
-
-        /* ─── Form Controls ─── */
-        .kp-field { margin-bottom: 16px; }
-        .kp-label {
-            display: block;
-            font-size: 12px; font-weight: 600;
-            color: var(--discord-text);
-            margin-bottom: 8px;
-            letter-spacing: 0.2px;
-        }
-        .kp-label .kp-hint {
-            color: var(--discord-muted); font-weight: 400; font-size: 11px;
-            display: block; margin-top: 2px;
-        }
-
-        .kp-input {
-            width: 100%;
-            background: var(--discord-darker);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: var(--discord-text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-        }
-        .kp-input:focus {
-            border-color: var(--discord-blurple);
-            box-shadow: 0 0 0 3px rgba(88,101,242,0.15);
-        }
-        .kp-input::placeholder { color: var(--discord-muted); }
-
-        .kp-input-wrap {
-            position: relative;
-        }
-        .kp-eye-btn {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; color: var(--discord-muted);
-            cursor: pointer; font-size: 16px; padding: 4px;
-            transition: color 0.2s;
-        }
-        .kp-eye-btn:hover { color: var(--discord-text); }
-
-        /* ─── Toggle Switches ─── */
-        .kp-toggle-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .kp-toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .kp-toggle-row:first-child { padding-top: 0; }
-
-        .kp-toggle-label { font-size: 14px; font-weight: 500; }
-        .kp-toggle-desc { font-size: 12px; color: var(--discord-muted); margin-top: 2px; }
-
-        .kp-switch {
-            position: relative; width: 44px; height: 24px; flex-shrink: 0;
-        }
-        .kp-switch input { opacity: 0; width: 0; height: 0; }
-        .kp-slider {
-            position: absolute; cursor: pointer; inset: 0;
-            background: rgba(255,255,255,0.1);
-            border-radius: 24px;
-            transition: background 0.2s;
-        }
-        .kp-slider::before {
-            content: '';
-            position: absolute;
-            width: 18px; height: 18px; border-radius: 50%;
-            background: #fff;
-            left: 3px; top: 3px;
-            transition: transform 0.2s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-        .kp-switch input:checked + .kp-slider { background: var(--discord-blurple); }
-        .kp-switch input:checked + .kp-slider::before { transform: translateX(20px); }
-
-        /* ─── Preview Card ─── */
-        .kp-preview {
-            background: var(--discord-mid);
-            border-radius: 10px;
-            padding: 16px;
-            border-left: 4px solid var(--discord-blurple);
-        }
-        .kp-preview-header {
-            font-size: 11px; font-weight: 700;
-            color: var(--discord-blurple); text-transform: uppercase;
-            letter-spacing: 0.5px; margin-bottom: 10px;
-        }
-        .kp-preview-title {
-            font-size: 15px; font-weight: 700; color: #fff;
-        }
-        .kp-preview-details {
-            font-size: 13px; color: var(--discord-text); margin-top: 4px;
-        }
-        .kp-preview-state {
-            font-size: 13px; color: var(--discord-text); margin-top: 2px;
-        }
-        .kp-preview-time {
-            font-size: 12px; color: var(--discord-muted); margin-top: 6px;
-        }
-        .kp-preview-buttons {
-            display: flex; gap: 8px; margin-top: 12px;
-        }
-        .kp-preview-btn {
-            flex: 1;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px; font-weight: 600; color: var(--discord-text);
-            text-align: center; cursor: default;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-
-        /* ─── Action Buttons ─── */
-        .kp-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-        .kp-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none; cursor: pointer;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 14px; font-weight: 600;
-            transition: all 0.15s;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .kp-btn-primary {
-            background: var(--discord-blurple);
-            color: #fff;
-        }
-        .kp-btn-primary:hover { background: #4752C4; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(88,101,242,0.35); }
-        .kp-btn-primary:active { transform: translateY(0); }
-
-        .kp-btn-secondary {
-            background: rgba(255,255,255,0.07);
-            color: var(--discord-text);
-            border: 1px solid var(--border);
-        }
-        .kp-btn-secondary:hover { background: rgba(255,255,255,0.1); }
-
-        .kp-btn-danger {
-            background: rgba(237,66,69,0.15);
-            color: var(--danger);
-            border: 1px solid rgba(237,66,69,0.3);
-        }
-        .kp-btn-danger:hover { background: rgba(237,66,69,0.25); }
-
-        /* ─── Warning Box ─── */
-        .kp-warn {
-            background: rgba(240,178,50,0.1);
-            border: 1px solid rgba(240,178,50,0.3);
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 13px;
-            color: #F0B232;
-            margin-bottom: 16px;
-            display: flex; gap: 10px; align-items: flex-start;
-        }
-
-        /* ─── Footer ─── */
-        .kp-footer {
-            text-align: center;
-            padding: 24px;
-            font-size: 12px;
-            color: var(--discord-muted);
-        }
-        .kp-footer a { color: var(--discord-blurple); text-decoration: none; }
-        .kp-footer a:hover { text-decoration: underline; }
-
-        /* ─── Toast ─── */
-        .kp-toast {
-            position: fixed; bottom: 24px; right: 24px;
-            background: var(--discord-dark);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 20px;
-            font-size: 14px; font-weight: 500;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-            z-index: 9999;
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex; align-items: center; gap: 10px;
-            max-width: 320px;
-        }
-        .kp-toast.show { transform: translateY(0); opacity: 1; }
-        .kp-toast.success { border-left: 4px solid var(--discord-green); }
-        .kp-toast.error { border-left: 4px solid var(--danger); }
-
-        @media (max-width: 600px) {
-            .kp-container { grid-template-columns: 1fr; }
-            .kp-header { padding: 20px; }
-        }
-    </style>
 </head>
 <body>
+    <div id="kavasakiPresenceConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="kavasakiPresenceConfigurationForm">
+                    <div class="sectionTitle">Discord Settings</div>
+                    
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="discordToken">Discord User Token</label>
+                        <input id="discordToken" name="DiscordToken" type="password" is="emby-input" />
+                        <div class="fieldDescription">Your Discord user token. Keep this private!</div>
+                    </div>
 
-<div class="kp-header">
-    <div class="kp-logo">🎮</div>
-    <div class="kp-header-text">
-        <h1>Kavasaki Presence</h1>
-        <p>Custom Rich Presence Jellyfin made by Kavasaki</p>
-    </div>
-    <span class="kp-badge">v1.0.0</span>
-</div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input type="checkbox" is="emby-checkbox" id="isEnabled" name="IsEnabled" />
+                            <span>Enable Plugin</span>
+                        </label>
+                    </div>
 
-<div class="kp-container">
+                    <div class="sectionTitle">Display Options</div>
 
-    <!-- Status -->
-    <div class="kp-card kp-full">
-        <div class="kp-card-title">⚡ Connection Status</div>
-        <div id="statusBanner" class="kp-status-banner waiting">
-            <div class="kp-status-dot"></div>
-            <div class="kp-status-text">
-                <strong id="statusTitle">Waiting for configuration</strong>
-                <span id="statusDesc">Enter your Discord token and save to connect.</span>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input type="checkbox" is="emby-checkbox" id="showImdbRating" name="ShowImdbRating" />
+                            <span>Show IMDB Rating</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input type="checkbox" is="emby-checkbox" id="showImdbButton" name="ShowImdbButton" />
+                            <span>Show IMDB Button</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input type="checkbox" is="emby-checkbox" id="showTimestamp" name="ShowTimestamp" />
+                            <span>Show Playback Timestamp</span>
+                        </label>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="jellyfinPublicUrl">Jellyfin Public URL</label>
+                        <input id="jellyfinPublicUrl" name="JellyfinPublicUrl" type="text" is="emby-input" />
+                        <div class="fieldDescription">Optional: Public URL of your server for the "Watch on Jellyfin" button.</div>
+                    </div>
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
 
-    <!-- Discord Token -->
-    <div class="kp-card kp-full">
-        <div class="kp-card-title">🔑 Discord Authentication</div>
+        <script type="text/javascript">
+            var KavasakiPresenceConfig = {
+                pluginUniqueId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+            };
 
-        <div class="kp-warn">
-            ⚠️ <div><strong>User Token Required</strong><br>
-            This plugin uses your Discord user token to set Rich Presence. Never share this token with anyone.
-            The token is stored securely in Jellyfin's plugin config and only sent to Discord's servers.</div>
-        </div>
-
-        <div class="kp-field">
-            <label class="kp-label">
-                Discord User Token
-                <span class="kp-hint">Open Discord → DevTools (F12) → Network tab → Filter "science" → Find Authorization header</span>
-            </label>
-            <div class="kp-input-wrap">
-                <input type="password" id="DiscordToken" class="kp-input" placeholder="MTA0NjQ3NzA4NTkzNzc4..." style="padding-right:44px" />
-                <button class="kp-eye-btn" onclick="toggleToken()" title="Show/Hide token">👁</button>
-            </div>
-        </div>
-
-        <div class="kp-field">
-            <label class="kp-label">
-                Discord App Client ID
-                <span class="kp-hint">Your Discord Application ID (from Discord Developer Portal) for custom images. Leave default if unsure.</span>
-            </label>
-            <input type="text" id="DiscordAppClientId" class="kp-input" placeholder="1234567890123456789" />
-        </div>
-    </div>
-
-    <!-- Toggles Left -->
-    <div class="kp-card">
-        <div class="kp-card-title">⚙️ Display Options</div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Enable Plugin</div>
-                <div class="kp-toggle-desc">Master switch for Rich Presence</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="IsEnabled" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show Title</div>
-                <div class="kp-toggle-desc">Movie / show name</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowTitle" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show Year</div>
-                <div class="kp-toggle-desc">Production year in title</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowYear" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show Media Type</div>
-                <div class="kp-toggle-desc">🎬 Movie / 📺 TV Show / 🎵 Music</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowMediaType" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show Episode Info</div>
-                <div class="kp-toggle-desc">S01E04 - Episode Name</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowEpisodeInfo" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show Timestamp</div>
-                <div class="kp-toggle-desc">Elapsed time counter</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowTimestamp" /><span class="kp-slider"></span></label>
-        </div>
-    </div>
-
-    <!-- IMDB & Buttons -->
-    <div class="kp-card">
-        <div class="kp-card-title">⭐ IMDB & Buttons</div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Show IMDB Rating</div>
-                <div class="kp-toggle-desc">⭐ 8.3/10 — No API key needed!</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowImdbRating" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">IMDB Button</div>
-                <div class="kp-toggle-desc">Clickable link to IMDB page</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowImdbButton" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-toggle-row">
-            <div>
-                <div class="kp-toggle-label">Jellyfin Button</div>
-                <div class="kp-toggle-desc">"Watch on Jellyfin" link button</div>
-            </div>
-            <label class="kp-switch"><input type="checkbox" id="ShowJellyfinButton" /><span class="kp-slider"></span></label>
-        </div>
-
-        <div class="kp-field" style="margin-top:16px; margin-bottom:0">
-            <label class="kp-label">
-                Public Jellyfin URL
-                <span class="kp-hint">Required for the Jellyfin button (e.g. https://jellyfin.myserver.com)</span>
-            </label>
-            <input type="url" id="JellyfinPublicUrl" class="kp-input" placeholder="https://jellyfin.example.com" />
-        </div>
-    </div>
-
-    <!-- Preview -->
-    <div class="kp-card kp-full">
-        <div class="kp-card-title">👁️ Rich Presence Preview</div>
-        <div class="kp-preview">
-            <div class="kp-preview-header">🎮 Playing a game</div>
-            <div class="kp-preview-title" id="previewTitle">Oppenheimer (2023)</div>
-            <div class="kp-preview-details" id="previewDetails">⭐ 8.3/10  •  🎬 Movie</div>
-            <div class="kp-preview-state" id="previewState"></div>
-            <div class="kp-preview-time" id="previewTime">01:23:45 elapsed</div>
-            <div class="kp-preview-buttons" id="previewButtons">
-                <div class="kp-preview-btn">⭐ IMDB 8.3/10</div>
-                <div class="kp-preview-btn">🎬 Watch on Jellyfin</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Save Actions -->
-    <div class="kp-card kp-full">
-        <div class="kp-card-title">💾 Actions</div>
-        <div class="kp-actions">
-            <button class="kp-btn kp-btn-primary" onclick="saveConfig()">
-                💾 Save & Connect
-            </button>
-            <button class="kp-btn kp-btn-secondary" onclick="testPresence()">
-                🧪 Test Presence
-            </button>
-            <button class="kp-btn kp-btn-danger" onclick="clearPresence()">
-                🔴 Clear Presence
-            </button>
-        </div>
-    </div>
-
-</div>
-
-<div class="kp-footer">
-    <strong>Custom Rich Presence Jellyfin made by Kavasaki</strong> &nbsp;|&nbsp;
-    No IMDB API key required &nbsp;|&nbsp;
-    <a href="https://github.com" target="_blank">GitHub</a>
-</div>
-
-<div id="toast" class="kp-toast"></div>
-
-<script>
-    // ─── Load config ───────────────────────────────────────────────
-    const fields = [
-        'DiscordToken','DiscordAppClientId','IsEnabled','ShowTitle','ShowYear',
-        'ShowMediaType','ShowEpisodeInfo','ShowTimestamp','ShowImdbRating',
-        'ShowImdbButton','ShowJellyfinButton','JellyfinPublicUrl'
-    ];
-
-    async function loadConfig() {
-        try {
-            const resp = await ApiClient.getPluginConfiguration('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
-            fields.forEach(f => {
-                const el = document.getElementById(f);
-                if (!el) return;
-                if (el.type === 'checkbox') el.checked = resp[f] ?? true;
-                else el.value = resp[f] ?? '';
-            });
-            updateStatus(resp.DiscordToken ? 'waiting' : 'disconnected',
-                resp.DiscordToken ? 'Token configured, connecting on save...' : 'No token configured',
-                resp.DiscordToken ? 'Discord token is set. Save to connect.' : 'Enter your Discord token above.');
-            updatePreview();
-        } catch(e) {
-            console.error('[KavasakiPresence] Failed to load config', e);
-        }
-    }
-
-    async function saveConfig() {
-        try {
-            const config = {};
-            fields.forEach(f => {
-                const el = document.getElementById(f);
-                if (!el) return;
-                config[f] = el.type === 'checkbox' ? el.checked : el.value;
+            document.querySelector('#kavasakiPresenceConfigurationPage').addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                var page = this;
+                ApiClient.getPluginConfiguration(KavasakiPresenceConfig.pluginUniqueId).then(function (config) {
+                    page.querySelector('#discordToken').value = config.DiscordToken || '';
+                    page.querySelector('#isEnabled').checked = config.IsEnabled;
+                    page.querySelector('#showImdbRating').checked = config.ShowImdbRating;
+                    page.querySelector('#showImdbButton').checked = config.ShowImdbButton;
+                    page.querySelector('#showTimestamp').checked = config.ShowTimestamp;
+                    page.querySelector('#jellyfinPublicUrl').value = config.JellyfinPublicUrl || '';
+                    Dashboard.hideLoadingMsg();
+                });
             });
 
-            await ApiClient.updatePluginConfiguration('a1b2c3d4-e5f6-7890-abcd-ef1234567890', config);
+            document.querySelector('#kavasakiPresenceConfigurationForm').addEventListener('submit', function (e) {
+                Dashboard.showLoadingMsg();
+                var form = this;
+                ApiClient.getPluginConfiguration(KavasakiPresenceConfig.pluginUniqueId).then(function (config) {
+                    config.DiscordToken = form.querySelector('#discordToken').value;
+                    config.IsEnabled = form.querySelector('#isEnabled').checked;
+                    config.ShowImdbRating = form.querySelector('#showImdbRating').checked;
+                    config.ShowImdbButton = form.querySelector('#showImdbButton').checked;
+                    config.ShowTimestamp = form.querySelector('#showTimestamp').checked;
+                    config.JellyfinPublicUrl = form.querySelector('#jellyfinPublicUrl').value;
 
-            if (config.DiscordToken && config.IsEnabled) {
-                updateStatus('connected', 'Connected to Discord', 'Rich Presence is active. Play something to see it!');
-            } else if (!config.IsEnabled) {
-                updateStatus('disconnected', 'Plugin Disabled', 'Enable the plugin to activate Rich Presence.');
-            } else {
-                updateStatus('disconnected', 'No Token', 'Enter your Discord token to connect.');
-            }
+                    ApiClient.updatePluginConfiguration(KavasakiPresenceConfig.pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
 
-            showToast('✅ Settings saved! Reconnecting to Discord...', 'success');
-        } catch(e) {
-            showToast('❌ Failed to save: ' + e.message, 'error');
-        }
-    }
-
-    async function testPresence() {
-        showToast('🧪 Testing presence... Play something in Jellyfin!', 'success');
-    }
-
-    async function clearPresence() {
-        showToast('🔴 Clearing Discord presence...', 'success');
-    }
-
-    // ─── UI Helpers ────────────────────────────────────────────────
-    function updateStatus(type, title, desc) {
-        const banner = document.getElementById('statusBanner');
-        banner.className = `kp-status-banner ${type}`;
-        document.getElementById('statusTitle').textContent = title;
-        document.getElementById('statusDesc').textContent = desc;
-    }
-
-    function toggleToken() {
-        const input = document.getElementById('DiscordToken');
-        input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    function updatePreview() {
-        const showRating = document.getElementById('ShowImdbRating')?.checked;
-        const showType = document.getElementById('ShowMediaType')?.checked;
-        const showYear = document.getElementById('ShowYear')?.checked;
-        const showTimestamp = document.getElementById('ShowTimestamp')?.checked;
-        const showImdbBtn = document.getElementById('ShowImdbButton')?.checked;
-        const showJfBtn = document.getElementById('ShowJellyfinButton')?.checked;
-        const showEp = document.getElementById('ShowEpisodeInfo')?.checked;
-
-        let details = '';
-        if (showRating) details += '⭐ 8.3/10';
-        if (showType) details += (details ? '  •  ' : '') + '🎬 Movie';
-
-        document.getElementById('previewTitle').textContent =
-            'Oppenheimer' + (showYear ? ' (2023)' : '');
-        document.getElementById('previewDetails').textContent = details || 'Now Playing';
-        document.getElementById('previewState').textContent = showEp ? '' : '';
-        document.getElementById('previewTime').textContent = showTimestamp ? '01:23:45 elapsed' : '';
-
-        const btns = document.getElementById('previewButtons');
-        btns.innerHTML = '';
-        if (showImdbBtn) btns.innerHTML += '<div class="kp-preview-btn">⭐ IMDB 8.3/10</div>';
-        if (showJfBtn) btns.innerHTML += '<div class="kp-preview-btn">🎬 Watch on Jellyfin</div>';
-    }
-
-    // Live preview updates
-    fields.forEach(f => {
-        const el = document.getElementById(f);
-        if (el) el.addEventListener('change', updatePreview);
-    });
-
-    function showToast(msg, type = 'success') {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.className = `kp-toast ${type} show`;
-        setTimeout(() => { t.className = `kp-toast ${type}`; }, 3500);
-    }
-
-    // ─── Init ──────────────────────────────────────────────────────
-    document.addEventListener('viewshow', loadConfig);
-    loadConfig();
-</script>
+                e.preventDefault();
+                return false;
+            });
+        </script>
+    </div>
 </body>
 </html>
