@@ -14,7 +14,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool ShowEpisodeInfo { get; set; } = true;
     public bool ShowYear { get; set; } = true;
     public string CustomStatusText { get; set; } = string.Empty;
-    public string DiscordAppClientId { get; set; } = "1234567890123456789";
+    public string DiscordAppClientId { get; set; } = "1489212028252979270";
     public bool ShowJellyfinButton { get; set; } = false;
     public string JellyfinPublicUrl { get; set; } = string.Empty;
 
