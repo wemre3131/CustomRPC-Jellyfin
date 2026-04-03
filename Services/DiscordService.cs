@@ -11,7 +11,7 @@ namespace Jellyfin.Plugin.KavasakiPresence.Services;
 
 /// <summary>
 /// Handles Discord Gateway WebSocket connection and Rich Presence updates.
-/// Uses Discord's user token to connect and set custom status.
+/// Uses Discord's user token to connect and set custom status via Gateway OP 3.
 /// </summary>
 public class DiscordService : IDisposable
 {
@@ -26,17 +26,11 @@ public class DiscordService : IDisposable
     private bool _isConnected;
     private RichPresenceData? _pendingPresence;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DiscordService"/> class.
-    /// </summary>
     public DiscordService(ILogger<DiscordService> logger)
     {
         _logger = logger;
     }
 
-    /// <summary>
-    /// Connects to Discord Gateway using user token.
-    /// </summary>
     public async Task ConnectAsync(string token, CancellationToken cancellationToken = default)
     {
         if (_isConnected)
@@ -46,7 +40,7 @@ public class DiscordService : IDisposable
 
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _webSocket = new ClientWebSocket();
-        _webSocket.Options.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+        _webSocket.Options.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
         _logger.LogInformation("[KavasakiPresence] Connecting to Discord Gateway...");
 
@@ -161,8 +155,15 @@ public class DiscordService : IDisposable
             {
                 if (_webSocket?.State == WebSocketState.Open)
                 {
-                    var hb = JsonSerializer.Serialize(new { op = 1, d = _lastSequence });
-                    await SendRawAsync(hb, ct).ConfigureAwait(false);
+                    try
+                    {
+                        var hb = JsonSerializer.Serialize(new { op = 1, d = _lastSequence });
+                        await SendRawAsync(hb, ct).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "[KavasakiPresence] Error sending heartbeat.");
+                    }
                 }
             },
             null,
@@ -203,9 +204,6 @@ public class DiscordService : IDisposable
         await SendRawAsync(JsonSerializer.Serialize(identify), ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Updates Discord Rich Presence with media info.
-    /// </summary>
     public async Task UpdatePresenceAsync(RichPresenceData data, CancellationToken ct = default)
     {
         _pendingPresence = data;
@@ -216,89 +214,54 @@ public class DiscordService : IDisposable
             return;
         }
 
+        var config = Plugin.Instance?.Configuration;
+        string appIdStr = config?.DiscordAppClientId ?? "1489212028252979270";
+        
+        // application_id must be sent as a string in Gateway OP 3 payload, 
+        // but Discord often expects it to be a valid snowflake.
+        
         // Build activity buttons
         var buttons = new System.Collections.Generic.List<object>();
-
         if (data.ShowImdbButton && !string.IsNullOrEmpty(data.ImdbId))
         {
-            buttons.Add(new
-            {
-                label = $"⭐ IMDB{(data.ShowImdbRating && data.ImdbRating.HasValue ? $" {data.ImdbRating:0.0}/10" : "")}",
-                url = $"https://www.imdb.com/title/{data.ImdbId}/"
-            });
+            buttons.Add(new { label = "⭐ IMDB", url = $"https://www.imdb.com/title/{data.ImdbId}/" });
         }
-
         if (data.ShowJellyfinButton && !string.IsNullOrEmpty(data.JellyfinUrl))
         {
-            buttons.Add(new
-            {
-                label = "🎬 Watch on Jellyfin",
-                url = data.JellyfinUrl
-            });
+            buttons.Add(new { label = "🎬 Watch on Jellyfin", url = data.JellyfinUrl });
         }
 
-        // Build details string
         string details = data.Title ?? "Unknown Title";
-        if (data.ShowYear && data.Year.HasValue)
-            details += $" ({data.Year})";
+        if (data.ShowYear && data.Year.HasValue) details += $" ({data.Year})";
 
-        // Build state string
         string state = string.Empty;
-        if (data.ShowImdbRating && data.ImdbRating.HasValue)
-            state += $"⭐ {data.ImdbRating:0.0}/10";
-
+        if (data.ShowImdbRating && data.ImdbRating.HasValue) state += $"⭐ {data.ImdbRating:0.0}/10";
         if (data.ShowEpisodeInfo && !string.IsNullOrEmpty(data.EpisodeInfo))
         {
             if (!string.IsNullOrEmpty(state)) state += "  •  ";
             state += data.EpisodeInfo;
         }
+        if (string.IsNullOrEmpty(state) && data.ShowMediaType) state = data.MediaType ?? "Jellyfin";
 
-        if (string.IsNullOrEmpty(state) && data.ShowMediaType)
-            state = data.MediaType ?? "Jellyfin";
-
-        // Build the activity
-        object activity;
-        if (buttons.Count > 0)
+        var activity = new
         {
-            activity = new
+            name = "Jellyfin",
+            type = 3, // Watching
+            application_id = appIdStr,
+            details = details,
+            state = string.IsNullOrEmpty(state) ? "via Kavasaki Presence" : state,
+            timestamps = data.ShowTimestamp && data.StartTimestamp.HasValue ? new { start = data.StartTimestamp.Value } : null,
+            assets = new
             {
-                name = "Jellyfin",
-                type = 3, // Watching
-                details,
-                state = string.IsNullOrEmpty(state) ? "via Kavasaki Presence" : state,
-                timestamps = data.ShowTimestamp && data.StartTimestamp.HasValue ? new { start = data.StartTimestamp.Value } : (object?)null,
-                assets = new
-                {
-                    large_image = "jellyfin_logo",
-                    large_text = "Kavasaki Presence",
-                    small_image = "kavasaki",
-                    small_text = "Custom Rich Presence Jellyfin made by Kavasaki"
-                },
-                buttons
-            };
-        }
-        else
-        {
-            activity = new
-            {
-                name = "Jellyfin",
-                type = 3,
-                details,
-                state = string.IsNullOrEmpty(state) ? "via Kavasaki Presence" : state,
-                timestamps = data.ShowTimestamp && data.StartTimestamp.HasValue ? new { start = data.StartTimestamp.Value } : (object?)null,
-                assets = new
-                {
-                    large_image = "jellyfin_logo",
-                    large_text = "Kavasaki Presence",
-                    small_image = "kavasaki",
-                    small_text = "Custom Rich Presence Jellyfin made by Kavasaki"
-                }
-            };
-        }
+                large_image = "jellyfin_logo",
+                large_text = "Kavasaki Presence"
+            },
+            buttons = buttons.Count > 0 ? buttons : null
+        };
 
         var payload = new
         {
-            op = 3,
+            op = 3, // Presence Update
             d = new
             {
                 since = (long?)null,
@@ -309,19 +272,13 @@ public class DiscordService : IDisposable
         };
 
         await SendRawAsync(JsonSerializer.Serialize(payload), ct).ConfigureAwait(false);
-        _logger.LogInformation("[KavasakiPresence] Presence updated: {Title}", data.Title);
+        _logger.LogInformation("[KavasakiPresence] Presence updated via Gateway: {Title}", data.Title);
         _pendingPresence = null;
     }
 
-    /// <summary>
-    /// Clears the Rich Presence (when playback stops).
-    /// </summary>
     public async Task ClearPresenceAsync(CancellationToken ct = default)
     {
-        if (!_isConnected || _webSocket?.State != WebSocketState.Open)
-            return;
-
-        _pendingPresence = null;
+        if (!_isConnected || _webSocket?.State != WebSocketState.Open) return;
 
         var payload = new
         {
@@ -339,57 +296,49 @@ public class DiscordService : IDisposable
         _logger.LogInformation("[KavasakiPresence] Presence cleared.");
     }
 
-    private async Task SendRawAsync(string json, CancellationToken ct)
-    {
-        if (_webSocket?.State != WebSocketState.Open) return;
-
-        var bytes = Encoding.UTF8.GetBytes(json);
-        await _webSocket.SendAsync(
-            new ArraySegment<byte>(bytes),
-            WebSocketMessageType.Text,
-            true,
-            ct).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Disconnects from Discord Gateway.
-    /// </summary>
     public async Task DisconnectAsync()
     {
-        _heartbeatTimer?.Dispose();
-        _cts?.Cancel();
-
-        if (_webSocket?.State == WebSocketState.Open)
+        if (_webSocket != null)
         {
             try
             {
-                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Goodbye", CancellationToken.None)
-                    .ConfigureAwait(false);
+                if (_webSocket.State == WebSocketState.Open)
+                {
+                    await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnecting", CancellationToken.None).ConfigureAwait(false);
+                }
             }
-            catch { /* ignore on disconnect */ }
+            catch { }
+            finally
+            {
+                _webSocket.Dispose();
+                _webSocket = null;
+            }
         }
 
+        _heartbeatTimer?.Dispose();
+        _heartbeatTimer = null;
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
         _isConnected = false;
-        _webSocket?.Dispose();
-        _webSocket = null;
     }
 
-    /// <inheritdoc />
+    private async Task SendRawAsync(string json, CancellationToken ct)
+    {
+        if (_webSocket?.State != WebSocketState.Open) return;
+        var bytes = Encoding.UTF8.GetBytes(json);
+        await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct).ConfigureAwait(false);
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
-        _heartbeatTimer?.Dispose();
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _webSocket?.Dispose();
+        _ = DisconnectAsync();
         GC.SuppressFinalize(this);
     }
 }
 
-/// <summary>
-/// Data model for Rich Presence.
-/// </summary>
 public class RichPresenceData
 {
     public string? Title { get; set; }
